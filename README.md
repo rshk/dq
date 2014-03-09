@@ -91,7 +91,7 @@ pipe1 = D1()(I1()())
 pipe2 = D1()(I1()())
 pipe3 = T3()(pipe1, pipe2)
 O1()(D3()(pipe3))
-``
+```
 
 **Example 2: one input, two outputs**
 
@@ -106,7 +106,7 @@ pipe1 = D1()(I1()())
 pipe3, pipe4 = T3()(pipe1)
 O1()(D3()(pipe3))
 O2()(D4()(pipe4))
-``
+```
 
 **Example 3: two inputs, two outputs**
 
@@ -122,7 +122,7 @@ pipe2 = D1()(I1()())
 pipe3, pipe4 = T3()(pipe1, pipe2)
 O1()(D3()(pipe3))
 O2()(D4()(pipe4))
-``
+```
 
 ### Complex piping
 
