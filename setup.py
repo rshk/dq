@@ -7,6 +7,7 @@ version = '0.1a'
 install_requires = [
     'ply',
     'six',
+    'greenlet',
 ]
 tests_require = [
     'pytest',
