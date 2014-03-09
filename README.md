@@ -82,89 +82,118 @@ more than an input / returning more than an output.
 **Example 1: two inputs, one output**
 
 ```
-(I1() | D1(), I2() | D2()) | T2() | D3() | O1()
+{ In1() | Dev1() , In2() | Dev2() } | Merge() | Dev3() | Out1()
 ```
-Results in:
+
+Results in something like this being executed:
 
 ```python
-pipe1 = D1()(I1()())
-pipe2 = D1()(I1()())
-pipe3 = T3()(pipe1, pipe2)
-O1()(D3()(pipe3))
+
+in1 = In1()
+in2 = In2()
+dev1 = Dev1()
+dev2 = Dev2()
+merge = Merge()
+dev3 = Dev3()
+out1 = Out1()
+
+pipe1 = dev1(in1())
+pipe2 = dev2(in2())
+
+out1(dev3(merge(pipe1, pipe2)))
 ```
+
+**Notes:**
+
+- ``Merge()`` is just a normal device, named "Merge"
+- Variable names in the Python code above are just mnemonic.
+  Things will be placed in other places during actual execution,
+  not in actual global variables.
+
 
 **Example 2: one input, two outputs**
 
 ```
-I1() | D1() | T1() | (D3() | O1(), D4() | O2())
+Input() | { Dev1() | Out1(), Dev2() | Out2() }
 ```
 
 Results in:
 
 ```python
-pipe1 = D1()(I1()())
-pipe3, pipe4 = T3()(pipe1)
-O1()(D3()(pipe3))
-O2()(D4()(pipe4))
+input = Input()
+dev1 = Dev1()
+out1 = Out1()
+dev2 = Dev2()
+out2 = Out2()
+
+result1, result2 = input()
+out1(dev1(result1))
+out2(dev2(result1))
 ```
 
 **Example 3: two inputs, two outputs**
 
 ```
-(I1() | D1(), I2() | D2()) | T3() | (D3() | O1(), D4() | O2())
+{ I1() | D1() , I2() | D2() } | M() | { D3() | O1() , D4() | O2() }
 ```
 
 Results in:
 
 ```python
-pipe1 = D1()(I1()())
-pipe2 = D1()(I1()())
-pipe3, pipe4 = T3()(pipe1, pipe2)
-O1()(D3()(pipe3))
-O2()(D4()(pipe4))
+pipe1 = D1(I1())
+pipe2 = D2(I2())
+m = M()
+
+pipe3, pipe4 = m(pipe1, pipe2)
+O1(D3(pipe3))
+O2(D4(pipe4))
 ```
 
 ### Complex piping
 
+A complex pipeline like this:
+
 ```
-       +----+ +----+ +----+
-       | P1 | | P2 | | P3 |
-       +----+ +----+ +----+
-          |     |      |
-           \    |     /
-         +----+----+----+
-         | I1 | I2 | I3 |
-         +----+----+----+
-         |    Device    |
-         +----+----+----+
-         | O1 | O2 | O3 |
-         +----+----+----+
-          | |   |    |||
-  +-------+ |   |    ||+-------------+
-  |      +--+   |    |+-------+      |
-  |      |      |    |        |      |
-+----+ +----+ +----+ +----+ +----+ +----+
-| P4 | | P5 | | P6 | | P7 | | P8 | | P9 |
-+----+ +----+ +----+ +----+ +----+ +----+
+                 +----+    +----+    +----+    +----+
+                 | P1 |    | P2 |    | P3 |    | P4 |
+                 +----+    +----+    +----+    +----+
+                    |         |       |          |
+                    +-------+ |   +---+  +-------+
+                            | |   |      |
+                           +----+----+----+
+                           | I1 | I2 | I3 |
+                           +----+----+----+
+                           |    Device    |
+                           +----+----+----+
+                           | O1 | O2 | O3 |
+                           +----+----+----+
+                             ||   |    |||
+                 +-----------+| +-+    ||+----------+
+                 |      +-----+ |      |+----+      |
+                 |      |       |      |     |      |
+              +----+ +----+ +----+ +----+ +----+ +----+
+              | P4 | | P5 | | P6 | | P7 | | P8 | | P9 |
+              +----+ +----+ +----+ +----+ +----+ +----+
 ```
 
 May be defined as:
 
 ```
-(P1, P2, P3) | Device | ((P4, P5), P6, (P7, P8, P9))
+{ P1, P2, P3 } | Device | {{ P4, P5 }, P6, { P7, P8, P9 }}
 ```
 
 And results in this code being executed:
 
 ```python
 out1, out2, out3 = Device(P1, P2, P3)
-P4(out1)
-P5(out1)
-P6(out2)
-P7(out3)
-P8(out3)
-P9(out3)
+TEE(out1, P4, P5)
+TEE(out2, P6)
+TEE(out3, P7, P8, P9)
 ```
+
+**Note:** ``TEE()`` is a special function that just dispatches
+output from a generator to multiple consumer functions (accepting
+generators as input).
 
 
 ## Example: filtering a CSV file
