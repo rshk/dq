@@ -9,3 +9,7 @@ __pycache__
 *.egg
 *.egg-info
 /.coverage
+
+## PLY files
+parser.out
+parsetab.py
