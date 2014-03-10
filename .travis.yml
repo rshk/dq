@@ -17,7 +17,7 @@ install:
   - pip install pytest pytest-cov pytest-pep8
 
 script:
-  - ./run-tests.sh
+  - ./run-tests.sh dq
 
 matrix:
   allow_failures:
