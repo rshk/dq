@@ -44,3 +44,27 @@ def test_parsing_blocks(parser):
 
     assert isinstance(result[1], Device)
     assert result[1].name == 'MERGE'
+
+
+def test_parsing_with_pyargs(parser):
+    text = """
+    Input('myfile.csv', sep=';', header=1)
+    | Filter(item.first_name == 'hello')
+    | Output('myfile2.csv', sep=',')
+    """
+    tree = parser.parse(text)
+    assert isinstance(tree, Pipeline)
+    assert len(tree) == 3
+
+    ## Input('myfile.csv', sep=';', header=1)
+    assert isinstance(tree[0], Device)
+    assert tree[0].name == 'Input'
+    assert tree[0].args[0].evaluate() == 'myfile.csv'
+    assert tree[0].keywords['sep'].evaluate() == ';'
+    assert tree[0].keywords['header'].evaluate() == 1
+
+    ## Filter(item.first_name == 'hello')
+    assert isinstance(tree[1], Device)
+
+    ## Output('myfile2.csv', sep=',')
+    assert isinstance(tree[1], Device)
