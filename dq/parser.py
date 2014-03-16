@@ -1,10 +1,10 @@
 import ast
 import os
-import collections
 
 import ply.yacc as yacc
 
 from dq.lexer import lexer, tokens  # noqa (needed in scope)
+from dq.objects import Pipeline, PipelineBlock, Device, Expression
 
 
 ##------------------------------------------------------------
@@ -26,86 +26,6 @@ from dq.lexer import lexer, tokens  # noqa (needed in scope)
 ##
 ## device : symbol pyargs
 ##------------------------------------------------------------
-
-
-class Pipeline(list):
-    def __repr__(self):
-        contents = ' | '.join(repr(x) for x in self)
-        return '{{ {0} }}'.format(contents)
-
-
-class PipelineBlock(list):
-    def __repr__(self):
-        contents = ', '.join(repr(x) for x in self)
-        return '{{ {0} }}'.format(contents)
-
-
-class Device(object):
-    """
-    Parsed object for containers.
-
-    Contains:
-
-    - the device name
-    - a list of expressions to be passed as constructor arguments
-    """
-
-    def __init__(self, name, args, keywords):
-        """
-        :param name: function name
-        :param args: list of Expression instances
-        :param keywords: dict of {string: Expression}
-        """
-
-        self.name = name
-        self.args = args
-        self.keywords = keywords
-
-    def __repr__(self):
-        arguments = []
-        for a in self.args:
-            arguments.append(repr(a))
-        for k, v in self.keywords.iteritems():
-            arguments.append('{0}={1!r}'.format(k, v))
-        return "{fn}({name}, {args})".format(
-            fn=self.__class__.__name__,
-            name=self.name, args=', '.join(arguments))
-
-
-class Expression(object):
-    """
-    Wrapper around Python expressions, parsed from device
-    constructor arguments.
-    """
-
-    def __init__(self, node, name=None):
-        self.node = node
-        self.name = name or '<none>'
-
-    def __repr__(self):
-        return "{0}({1!r}, name={2!r})".format(
-            self.__class__.__name__, self.node, self.name)
-
-    def compile(self):
-        """Compile the node using compile() builtin"""
-
-        return compile(ast.Expression(self.node), self.name, 'eval')
-
-    @property
-    def compiled(self):
-        comp = getattr(self, '_compiled', None)
-        if comp is None:
-            comp = self._compiled = self.compile()
-        return comp
-
-    def evaluate(self, glob=None, loc=None):
-        """Evaluate this expression in a given scope"""
-
-        if glob is None:
-            glob = {}
-        if loc is None:
-            loc = {}
-        return eval(self.compiled, glob, loc)
 
 
 def p_error(p):
