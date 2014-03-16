@@ -62,6 +62,9 @@ _pycode = [
      '"This ) is )) a string"'),
     ('string-with-confusing-parens3',
      '"This \\") is )) a string"'),
+    ('more-confusing-string', r"""
+     'This is \' )', another == string
+     """)
 ]
 _pycode_keys = [p[0] for p in _pycode]
 _pycode = dict(_pycode)
@@ -79,4 +82,12 @@ def test_lex_pyargs(lexer, pycode):
         ('PYARGS', "({0})".format(pycode)),
         ('PIPE', '|'),
         ('SYMBOL', 'OUT'),
+    ])
+
+
+def test_lex_pyargs_multi(lexer):
+    lexer.input("Example(1, 2)")
+    _check_parsed(list(lexer), [
+        ('SYMBOL', 'Example'),
+        ('PYARGS', "(1, 2)"),
     ])
