@@ -1,4 +1,4 @@
-from dq.parser import Pipeline, PipelineBlock, Device
+from dq.objects import Pipeline, PipelineBlock, Device
 from .utils import parser  # noqa
 
 
@@ -108,12 +108,12 @@ def test_parsing_with_blocks_and_pyargs(parser):
 
     assert isinstance(tree[0][1][0], Device)
     assert tree[0][1][0].name == 'Dev3'
-    assert tree[0][1][0].args == []
+    assert tree[0][1][0].args == ()
     assert tree[0][1][0].keywords == {}
 
     assert isinstance(tree[0][1][1], Device)
     assert tree[0][1][1].name == 'Dev4'
-    assert tree[0][1][1].args == []
+    assert tree[0][1][1].args == ()
     assert tree[0][1][1].keywords['example'].evaluate({'item': 10}) == 110
 
     # Collector(bla="foobar")

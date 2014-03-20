@@ -98,14 +98,13 @@ class Device(object):
     - a list of expressions to be passed as constructor arguments
     """
 
-    def __init__(self, name, args, keywords):
+    def __init__(self, *args, **keywords):
         """
         :param name: function name
         :param args: list of Expression instances
         :param keywords: dict of {string: Expression}
         """
 
-        self.name = name
         self.args = args
         self.keywords = keywords
 
@@ -115,13 +114,31 @@ class Device(object):
             arguments.append(repr(a))
         for k, v in self.keywords.iteritems():
             arguments.append('{0}={1!r}'.format(k, v))
-        return "{fn}({name}, {args})".format(
+        return "{fn}({args})".format(
             fn=self.__class__.__name__,
-            name=self.name, args=', '.join(arguments))
+            args=', '.join(arguments))
 
     def execute(self, *args):
         raise NotImplementedError(
             "Must be implemented in subclasses")
+
+
+class GenericDevice(Device):
+    def __init__(self, *args, **kwargs):
+        self.name = args[0]
+        args = args[1:]
+        return super(GenericDevice, self).__init__(*args, **kwargs)
+
+
+## todo: use entry points instead!
+DEVICES_REGISTER = {}
+
+
+def get_device(name, args, kwargs):
+    if name in DEVICES_REGISTER:
+        klass = DEVICES_REGISTER.get(name)
+        return klass(*args, **kwargs)
+    return GenericDevice(name, *args, **kwargs)
 
 
 class Expression(object):
@@ -133,6 +150,11 @@ class Expression(object):
     def __init__(self, node, name=None):
         self.node = node
         self.name = name or '<none>'
+
+    @classmethod
+    def from_string(cls, s, name=None):
+        node = ast.parse(s).body[0].value
+        return cls(node, name=name)
 
     def __repr__(self):
         return "{0}({1!r}, name={2!r})".format(
