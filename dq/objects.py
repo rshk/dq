@@ -138,22 +138,6 @@ class Expression(object):
 
 
 def execute(obj, args=()):
-    result = _execute(obj, args=args)
-
-    if isinstance(result, tuple):
-        if len(result) == 1:
-            ## This is output from a pipe / single-pipe block
-            ## so we just return it as a single object
-            return result[0]
-
-        ## This is output from a multi-pipe block,
-        ## so we return a tuple containing stuff
-        return result
-
-    return result
-
-
-def _execute(obj, args=()):
     """
     Device -> <pyobj>
     PipelineBlock -> tuple
@@ -201,6 +185,7 @@ def _execute(obj, args=()):
 
         if args is None:
             args = ()
+        wasblock = True  # we could have multiple inputs
 
         for item in obj:
             assert isinstance(item, (Device, PipelineBlock))
@@ -210,14 +195,18 @@ def _execute(obj, args=()):
             if isinstance(item, PipelineBlock):
                 ## Args should be passed as-is to the next one
                 assert isinstance(result, tuple)
+                wasblock = True
                 args = result
 
             else:
                 ## We have only one object to pass to next node
                 ## but is it a stream?
                 assert isinstance(item, Device)
+                wasblock = False
                 args = (result,)
 
+        if not wasblock:
+            return args[0]
         return args
 
     else:
