@@ -4,7 +4,7 @@ import os
 import ply.yacc as yacc
 
 from dq.lexer import lexer, tokens  # noqa (needed in scope)
-from dq.objects import Pipeline, PipelineBlock, get_device, Expression
+from dq.objects import Pipeline, PipelineBlock, Device, Expression
 
 
 ##------------------------------------------------------------
@@ -152,7 +152,7 @@ def p_device(p):
     if _call.kwargs is not None:
         raise ValueError("**kwargs are not supported")
 
-    p[0] = get_device(func_name, args, keywords)
+    p[0] = Device(func_name, args, keywords)
 
 
 ##----------------------------------------------------------------------------

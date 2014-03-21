@@ -1,5 +1,7 @@
 import ast
 import collections
+import inspect
+import itertools
 
 
 class MultipleOutput(tuple):
@@ -9,6 +11,11 @@ class MultipleOutput(tuple):
     from a device returning a normal tuple.
     """
     pass
+
+
+class GeneratorWrapper(object):
+    def __init__(self, value):
+        self.value = value
 
 
 class WrappedList(collections.MutableSequence):
@@ -38,54 +45,11 @@ class Pipeline(WrappedList):
         contents = ' | '.join(repr(x) for x in self)
         return '{{ {0} }}'.format(contents)
 
-    def execute(self, *args):
-        """
-        Execute the pipeline, with optional input argument(s).
-
-        This will iterate all the devices/blocks in the pipe
-        and call them passing the return value from the previous
-        one.
-
-        :param args:
-            - 0 arguments: initial pipeline
-            - 1 argument: pipeline with a single input
-            - >1 arguments: pipeline with input from a block
-        """
-
-        ## The first one should be executed with args
-        ## from the function call, if any.
-        ## Subsequent ones should be called with return value.
-
-        for item in self:
-            args = item.execute(*args),  # comma is not a typo!
-
-        return args[0]
-
 
 class PipelineBlock(WrappedList):
     def __repr__(self):
         contents = ', '.join(repr(x) for x in self)
         return '{{ {0} }}'.format(contents)
-
-    def execute(self, *args):
-        """
-        Execute a pipeline block, passing arguments
-        to all the contained pipelines or blocks.
-
-        .. note::
-            If inputs are generators, we want to
-            dispatch them to all functions.
-
-            Problem is, what if some inputs are
-            generators and some are not? We risk
-            deadlocking while waiting for a function
-            to iterate..
-
-            A solution would be to disallow chaining
-            two blocks, they must pass through a device
-            that merges stuff in a smarter way..
-        """
-        pass
 
 
 class Device(object):
@@ -98,18 +62,23 @@ class Device(object):
     - a list of expressions to be passed as constructor arguments
     """
 
-    def __init__(self, *args, **keywords):
+    def __init__(self, name, args, keywords):
         """
         :param name: function name
         :param args: list of Expression instances
         :param keywords: dict of {string: Expression}
         """
 
-        self.args = args
+        self.name = name
+        self.args = tuple(args)
         self.keywords = keywords
 
+    @classmethod
+    def from_star(cls, name, *a, **kw):
+        return cls(name, args=a, keywords=kw)
+
     def __repr__(self):
-        arguments = []
+        arguments = [repr(self.name)]
         for a in self.args:
             arguments.append(repr(a))
         for k, v in self.keywords.iteritems():
@@ -118,27 +87,13 @@ class Device(object):
             fn=self.__class__.__name__,
             args=', '.join(arguments))
 
-    def execute(self, *args):
-        raise NotImplementedError(
-            "Must be implemented in subclasses")
-
-
-class GenericDevice(Device):
-    def __init__(self, *args, **kwargs):
-        self.name = args[0]
-        args = args[1:]
-        return super(GenericDevice, self).__init__(*args, **kwargs)
+    def get_instance(self):
+        klass = DEVICES_REGISTER[self.name]
+        return klass(*self.args, **self.keywords)
 
 
 ## todo: use entry points instead!
 DEVICES_REGISTER = {}
-
-
-def get_device(name, args, kwargs):
-    if name in DEVICES_REGISTER:
-        klass = DEVICES_REGISTER.get(name)
-        return klass(*args, **kwargs)
-    return GenericDevice(name, *args, **kwargs)
 
 
 class Expression(object):
@@ -180,3 +135,90 @@ class Expression(object):
         if loc is None:
             loc = {}
         return eval(self.compiled, glob, loc)
+
+
+def execute(obj, args=()):
+    result = _execute(obj, args=args)
+
+    if isinstance(result, tuple):
+        if len(result) == 1:
+            ## This is output from a pipe / single-pipe block
+            ## so we just return it as a single object
+            return result[0]
+
+        ## This is output from a multi-pipe block,
+        ## so we return a tuple containing stuff
+        return result
+
+    return result
+
+
+def _execute(obj, args=()):
+    """
+    Device -> <pyobj>
+    PipelineBlock -> tuple
+    Pipeline -> last return value
+    """
+
+    if isinstance(obj, Device):
+        ## To execute a device, we just pass it all
+        ## the arguments.
+        ## In case we got streams, we just unwrap them.
+
+        _callable = obj.get_instance()
+        return _callable(*args)
+
+    elif isinstance(obj, PipelineBlock):
+        ## We need to call all the contained pipelines,
+        ## passing arguments.
+
+        _args_matrix = []
+        _count = len(obj)
+        _results = []
+
+        for arg in args:
+            if inspect.isgenerator(arg):
+                ## We need a generator for each pipeline
+                _args_matrix.append(itertools.tee(arg, _count))
+
+            else:
+                ## We just need to pass multiple copies
+                _args_matrix.append((arg,) * _count)
+
+        ## We zip the matrix to have each row contain
+        ## all the argument calls.
+        ## We zip that together with obj to get a list
+        ## of (pipe, args) tuples..
+        for pipe, args in zip(obj, zip(*_args_matrix)):
+            assert isinstance(pipe, Pipeline)
+            _results.append(execute(pipe, args))
+
+        return tuple(_results)
+
+    elif isinstance(obj, Pipeline):
+        ## We need to keep executing items in the pipeline
+        ## passing the return value of each one to the next.
+
+        if args is None:
+            args = ()
+
+        for item in obj:
+            assert isinstance(item, (Device, PipelineBlock))
+
+            result = execute(item, args)
+
+            if isinstance(item, PipelineBlock):
+                ## Args should be passed as-is to the next one
+                assert isinstance(result, tuple)
+                args = result
+
+            else:
+                ## We have only one object to pass to next node
+                ## but is it a stream?
+                assert isinstance(item, Device)
+                args = (result,)
+
+        return args
+
+    else:
+        raise TypeError("Not a duck")
