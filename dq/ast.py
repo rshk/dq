@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import ast
 import collections
+import sys
 
 
 class WrappedList(collections.MutableSequence):
@@ -105,11 +106,18 @@ class Expression(object):
             comp = self._compiled = self.compile()
         return comp
 
-    def evaluate(self, glob=None, loc=None):
+    def evaluate(self, loc=None, glob=None):
         """Evaluate this expression in a given scope"""
 
-        if glob is None:
-            glob = {}
+        globs = {
+            'stdin': sys.stdin,
+            'stdout': sys.stdout,
+            'stderr': sys.stderr,
+        }
+
+        if glob is not None:
+            globs.update(glob)
+
         if loc is None:
             loc = {}
         return eval(self.compiled, glob, loc)
