@@ -7,7 +7,7 @@ class Filter(BaseDevice):
 
     def __call__(self, stream):
         for item in stream:
-            if self.condition.evaluate(loc={'item': item}):
+            if self.condition.evaluate({'item': item}):
                 yield item
 
 
@@ -18,5 +18,24 @@ class Transform(BaseDevice):
     def __call__(self, stream):
         for item in stream:
             for name, expr in self.kwargs.iteritems():
-                item[name] = expr.evaluate(loc={'item': item})
-                yield item
+                item[name] = expr.evaluate({'item': item})
+            yield item
+
+
+class Map(BaseDevice):
+    def __init__(self, expr):
+        self.expr = expr
+
+    def __call__(self, stream):
+        for item in stream:
+            yield self.expr.evaluate({'item': item})
+
+
+class List(BaseDevice):
+    def __call__(self, stream):
+        return list(stream)
+
+
+class Dict(BaseDevice):
+    def __call__(self, stream):
+        return dict(stream)

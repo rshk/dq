@@ -1,6 +1,6 @@
 import json
 
-from .base import FileSource
+from .base import FileSource, FileSink
 
 
 class InJSON(FileSource):
@@ -8,6 +8,6 @@ class InJSON(FileSource):
         return json.load(self.fp)
 
 
-class OutJSON(FileSource):
+class OutJSON(FileSink):
     def __call__(self, obj):
-        return json.load(self.fp)
+        return json.dump(obj, self.fp)

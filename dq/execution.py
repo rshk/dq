@@ -13,6 +13,9 @@ import dq.piping.io_json
 DEVICES_REGISTER = {
     'Filter': dq.piping.filter.Filter,
     'Transform': dq.piping.filter.Transform,
+    'Map': dq.piping.filter.Map,
+    'List': dq.piping.filter.List,
+    'Dict': dq.piping.filter.Dict,
     'InCSV': dq.piping.io_csv.InCSV,
     'OutCSV': dq.piping.io_csv.OutCSV,
     'InJSON': dq.piping.io_json.InJSON,
