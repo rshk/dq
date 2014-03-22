@@ -1,4 +1,6 @@
-from dq.objects import Pipeline, PipelineBlock, Device
+from __future__ import absolute_import
+
+from dq.ast import Pipeline, PipelineBlock, Device
 from .utils import parser  # noqa
 
 

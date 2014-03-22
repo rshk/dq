@@ -12,6 +12,8 @@ and assignments (but we can just split on commas).
 
 """
 
+from __future__ import absolute_import
+
 import os
 import re
 
@@ -115,7 +117,8 @@ def t_pyargs_PYEXPR(t):
 t_pyargs_ignore = ""
 
 
-# For bad characters, we just skip over it
+## For bad characters, we just skip over it
+## todo: which kind of bad characters?
 def t_pyargs_error(t):
     t.lexer.skip(1)
 

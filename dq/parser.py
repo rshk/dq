@@ -1,10 +1,12 @@
+from __future__ import absolute_import
+
 import ast
 import os
 
 import ply.yacc as yacc
 
 from dq.lexer import lexer, tokens  # noqa (needed in scope)
-from dq.objects import Pipeline, PipelineBlock, Device, Expression
+from dq.ast import Pipeline, PipelineBlock, Device, Expression
 
 
 ##------------------------------------------------------------

@@ -1,5 +1,7 @@
 """
 Test for pipe "tees".
+
+todo: use the one provided by itertools instead..
 """
 
 from dq.piping.tee import dispatch_stream

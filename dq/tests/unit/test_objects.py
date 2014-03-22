@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 import collections
 
-from dq.objects import (Device, Pipeline, Expression,
-                        DEVICES_REGISTER, execute)
+from dq.ast import Device, Pipeline, Expression
+from dq.execution import DEVICES_REGISTER, execute
 from dq.parser import parser
 
 

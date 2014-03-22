@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 ## todo: refactor this thing, as we want tee implementations
 ##       to match the one in itertools.tee
 ## todo: create a true parallel tee using multiprocessing
