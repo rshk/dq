@@ -1,4 +1,5 @@
 import csv
+import collections
 
 from .base import FileSource, FileSink
 
@@ -7,7 +8,7 @@ from .base import FileSource, FileSink
 
 
 class InCSV(FileSource):
-    def __init__(self, csvfile, fieldnames=None, header=False, **kw):
+    def __init__(self, csvfile, fieldnames=None, header=None, **kw):
         super(InCSV, self).__init__(csvfile)
 
         ## If ``header=True``, the first line will be used as
@@ -16,18 +17,30 @@ class InCSV(FileSource):
         if header and (fieldnames is not None):
             raise ValueError("You can only specify one of fieldnames, header")
 
-        self._csv_header = header
-        self._csv_fieldnames = fieldnames
+        self._csv_header = header.evaluate() if header is not None else False
+        self._csv_fieldnames = (fieldnames.evaluate()
+                                if fieldnames is not None else None)
 
-        self._conf = kw
+        self._conf = dict((k, v.evaluate()) for k, v in kw.iteritems())
 
     def __call__(self):
-        if self._csv_header or self._csv_fieldnames:
-            reader = csv.DictReader()
-            pass
-
         reader = csv.reader(self.fp, **self._conf)
-        return iter(reader)  # Hide actual object
+        fieldnames = None
+
+        if self._csv_header:
+            ## This means: take first line as header
+            fieldnames = tuple(next(reader))
+        elif self._csv_fieldnames:
+            fieldnames = tuple(self._csv_fieldnames)
+
+        if fieldnames is not None:
+            row_factory = collections.namedtuple('row', fieldnames)
+        else:
+            row_factory = tuple
+
+        ## This method needs to be a generator..
+        for line in reader:
+            yield row_factory(line)
 
 
 class OutCSV(FileSink):
@@ -39,13 +52,10 @@ class OutCSV(FileSink):
         self._conf = kw
 
     def __call__(self, stream):
-        ## todo: we need a decent way to write output rows
-        ##       if items are dictionaries.
+        ## todo: how to handle autoheader? (to handle properly
+        ##       we lose asynchronousness..)
+        ## todo: use correct order if a header is specified..
 
-        fp = self._csvfile
-        if isinstance(fp, basestring):
-            fp = open(fp, 'wb')
-
-        writer = csv.writer(fp, **self._conf)
+        writer = csv.writer(self.fp, **self._conf)
         for row in stream:
             writer.writerow(row)

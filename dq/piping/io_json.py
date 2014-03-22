@@ -1,9 +1,13 @@
 import json
 
-from .base import BaseDevice
+from .base import FileSource
 
 
-class InJSON(BaseDevice):
-    def __init__(self, infile):
-        pass
-    pass
+class InJSON(FileSource):
+    def __call__(self):
+        return json.load(self.fp)
+
+
+class OutJSON(FileSource):
+    def __call__(self, obj):
+        return json.load(self.fp)

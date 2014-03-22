@@ -27,7 +27,7 @@ class FileSource(BaseDevice):
     _name_or_fp = None
 
     def __init__(self, name_or_fp):
-        self._name_or_fp = name_or_fp
+        self._name_or_fp = name_or_fp.evaluate()
 
     @property
     def fp(self):
@@ -53,7 +53,7 @@ class FileSink(BaseDevice):
     _name_or_fp = None
 
     def __init__(self, name_or_fp):
-        self._name_or_fp = name_or_fp
+        self._name_or_fp = name_or_fp.evaluate()
 
     @property
     def fp(self):
