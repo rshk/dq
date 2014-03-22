@@ -4,10 +4,20 @@ import inspect
 import itertools
 
 from .ast import Pipeline, PipelineBlock, Device
+import dq.piping.filter
+import dq.piping.io_csv
+import dq.piping.io_json
 
 
 ## todo: use entry points instead!
-DEVICES_REGISTER = {}
+DEVICES_REGISTER = {
+    'Filter': dq.piping.filter.Filter,
+    'Transform': dq.piping.filter.Transform,
+    'InCSV': dq.piping.io_csv.InCSV,
+    'OutCSV': dq.piping.io_csv.OutCSV,
+    'InJSON': dq.piping.io_json.InJSON,
+    'OutJSON': dq.piping.io_json.OutJSON,
+}
 
 
 def get_device_instance(name, args, keywords):
