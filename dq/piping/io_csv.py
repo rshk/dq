@@ -36,16 +36,16 @@ class InCSV(FileSource):
         if fieldnames is not None:
             row_factory = collections.namedtuple('row', fieldnames)
         else:
-            row_factory = tuple
+            row_factory = lambda *a: tuple(a)
 
         ## This method needs to be a generator..
         for line in reader:
-            yield row_factory(line)
+            yield row_factory(*line)
 
 
 class OutCSV(FileSink):
     def __init__(self, csvfile, fieldnames=None, autoheader=False, **kw):
-        super(InCSV, self).__init__(csvfile)
+        super(OutCSV, self).__init__(csvfile)
 
         self._csv_autoheader = autoheader
         self._fieldnames = fieldnames
