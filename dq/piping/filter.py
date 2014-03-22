@@ -1,5 +1,7 @@
 from .base import BaseDevice
 
+import copy
+
 
 class Filter(BaseDevice):
     def __init__(self, condition):
@@ -17,9 +19,10 @@ class Transform(BaseDevice):
 
     def __call__(self, stream):
         for item in stream:
+            _item = copy.deepcopy(item)
             for name, expr in self.kwargs.iteritems():
-                item[name] = expr.evaluate({'item': item})
-            yield item
+                _item[name] = expr.evaluate({'item': _item})
+            yield _item
 
 
 class Map(BaseDevice):
