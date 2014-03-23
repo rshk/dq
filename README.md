@@ -5,8 +5,70 @@ sed made smarter :)
 This project goal is providing a tool to quickly inspect / manipulate
 structured data from the command line, without having to write hackish
 (and usually faulty) regular expressions, nor to write the same
-boilerplate code over and over, just to extract some links from
-a web page..
+boilerplate code over and over, just to filter rows from a CSV or
+extract some links from a web page..
+
+
+## Base concepts
+
+``dq`` uses a simple DSL to define "pipelines" that will be used to
+process data.
+
+Pipelines are composed of "devices" and "blocks": a "device" is a node
+that actually does some processing on the data; a "block" is used to
+split output from a node to multiple pipelines.
+
+Each device is, internally, a callable Python class.
+They can be defined in the DSL as you would normally do with Python
+classes:
+
+```
+DeviceName(arg1, arg2, kw1=val1, kw2=val2)
+```
+
+Note that all the expressions in the arguments are *not* evaluated
+at compile time; instead, they are passed to the constructor as AST
+objects. In many cases, they will be evaluated later, on some
+specialized context.
+
+A pipeline usually consists of an input device, some processing devices
+and an output device.
+
+Example:
+
+```
+InCSV("myfile.csv", fieldnames=['id', 'name', 'price'])
+| filter(float(item.price) >= 80)
+| OutCSV("myoutfile.csv")
+```
+
+the behavior when executing this pipeline is roughly this:
+
+- devices are instantiated, passing ``Expression`` objects
+  as arguments. (An ``Expression`` object is just a
+  wrapper around an ``ast.Expression`` node)
+
+- The instance of the ``InCSV`` device is called with
+  no arguments
+
+  - It will open the ``"myfile.csv"`` file and start yielding
+    lines one-by-one (aka: returns a generator object)
+
+- The instance of the ``filter`` device is called, passing
+  the previously obtained generator as only argument.
+
+  - It will start iterating the stream. For each item, it will
+    evaluate the ``float(item.price) >= 80`` expression in
+	a scope in which ``item`` is the current iteration item;
+	it will only yield items for which the expression evaluates
+	to ``True``.
+
+- The ``OutCSV`` instance is called, passing the generator
+  returned by ``filter`` as only argument.
+
+  - It will start writing rows to the ``"myoutfile.csv"`` file.
+
+- Execution ends.
 
 
 ## Supported formats
