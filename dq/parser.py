@@ -9,25 +9,25 @@ from dq.lexer import lexer, tokens  # noqa (needed in scope)
 from dq.ast import Pipeline, PipelineBlock, Device, Expression
 
 
-##------------------------------------------------------------
-## Grammar
-##------------------------------------------------------------
-## program : pipeline
-##
-## pipeline : pipeline_item
-##          | pipeline PIPE pipeline_item
-##
-## pipeline_item : device | block
-##
-## block : LBRACE RBRACE
-##       | LBRACE block_content RBRACE
-##       | LBRACE block_content COMMA RBRACE
-##
-## block_content : pipeline
-##               | block_content COMMA pipeline
-##
-## device : symbol pyargs
-##------------------------------------------------------------
+# ------------------------------------------------------------
+# Grammar
+# ------------------------------------------------------------
+# program : pipeline
+#
+# pipeline : pipeline_item
+#          | pipeline PIPE pipeline_item
+#
+# pipeline_item : device | block
+#
+# block : LBRACE RBRACE
+#       | LBRACE block_content RBRACE
+#       | LBRACE block_content COMMA RBRACE
+#
+# block_content : pipeline
+#               | block_content COMMA pipeline
+#
+# device : symbol pyargs
+# ------------------------------------------------------------
 
 
 def p_error(p):
@@ -40,9 +40,9 @@ precedence = (  # low to high
 )
 
 
-##----------------------------------------------------------------------
-## Program
-##----------------------------------------------------------------------
+# ----------------------------------------------------------------------
+# Program
+# ----------------------------------------------------------------------
 
 def p_program(p):
     """
@@ -52,13 +52,13 @@ def p_program(p):
     p[0] = p[1]
 
 
-##----------------------------------------------------------------------
-## Pipeline
-##
-## pipeline = pipeline_component
-## pipeline = pipeline PIPE pipeline_component
-## pipeline_component = device | block
-##----------------------------------------------------------------------
+# ----------------------------------------------------------------------
+# Pipeline
+#
+# pipeline = pipeline_component
+# pipeline = pipeline PIPE pipeline_component
+# pipeline_component = device | block
+# ----------------------------------------------------------------------
 
 def p_pipeline_single(p):
     """
@@ -87,14 +87,14 @@ def p_pipeline_item(p):
     p[0] = p[1]
 
 
-##----------------------------------------------------------------------------
-## Block
-##
-## block = LBRACE RBRACE
-## block = LBRACE block_contents RBRACE
-## block_contents = pipeline
-## block_contents = block_contents COMMA pipeline
-##----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Block
+#
+# block = LBRACE RBRACE
+# block = LBRACE block_contents RBRACE
+# block_contents = pipeline
+# block_contents = block_contents COMMA pipeline
+# ----------------------------------------------------------------------------
 
 def p_block_empty(p):
     """ block : LBRACE RBRACE """
@@ -124,16 +124,16 @@ def p_block_content_append(p):
     p[0].append(p[3])
 
 
-##----------------------------------------------------------------------------
-## Devices
-##----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Devices
+# ----------------------------------------------------------------------------
 
 
 def p_device(p):
     """device : SYMBOL PYARGS"""
 
-    ## We can parse the two tokens into a Python AST
-    ## object, then extracting args, kwargs and expressions.
+    # We can parse the two tokens into a Python AST
+    # object, then extracting args, kwargs and expressions.
 
     text = ''.join((p[1], p[2]))
     parsed = ast.parse(text)
@@ -157,9 +157,9 @@ def p_device(p):
     p[0] = Device(func_name, args, keywords)
 
 
-##----------------------------------------------------------------------------
-## Create the parser
-##----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Create the parser
+# ----------------------------------------------------------------------------
 
 debug = True if os.environ.get('DQ_DEBUG') else False
 parser = yacc.yacc(debug=debug)

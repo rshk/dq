@@ -25,7 +25,7 @@ class LexerError(Exception):
 
 
 def t_error(t):
-    ## todo: provide better information about the error..
+    # todo: provide better information about the error..
     raise LexerError("Unknown text {0!r}".format(t.value,))
 
 
@@ -76,9 +76,9 @@ def t_COMMENT(t):
 t_SYMBOL = r'[a-zA-Z_][a-zA-Z_0-9]*'
 
 
-##----------------------------------------------------------------------
-## "Python arguments" state
-##----------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# "Python arguments" state
+# ---------------------------------------------------------------------
 
 def t_pyargs(t):
     r'\('
@@ -96,9 +96,9 @@ def t_pyargs_RPAREN(t):
     r'\)'
     t.lexer.level -= 1
 
-    ## If closing parentheses, return the code fragment
+    # If closing parentheses, return the code fragment
     if t.lexer.level == 0:
-        t.value = t.lexer.lexdata[t.lexer.code_start-1:t.lexer.lexpos]
+        t.value = t.lexer.lexdata[t.lexer.code_start - 1:t.lexer.lexpos]
         t.type = "PYARGS"
         t.lexer.lineno += t.value.count('\n')
         t.lexer.begin('INITIAL')
@@ -106,7 +106,7 @@ def t_pyargs_RPAREN(t):
 
 
 def t_pyargs_STRING(t):
-    ## Single or double-quoted string -> ignore contained parentheses
+    # Single or double-quoted string -> ignore contained parentheses
     r'\"([^\\\n]|(\\.))*?\"|\'([^\\\n]|(\\.))*?\''
 
 
@@ -117,13 +117,13 @@ def t_pyargs_PYEXPR(t):
 t_pyargs_ignore = ""
 
 
-## For bad characters, we just skip over it
-## todo: which kind of bad characters?
+# For bad characters, we just skip over it
+# todo: which kind of bad characters?
 def t_pyargs_error(t):
     t.lexer.skip(1)
 
 
-##----------------------------------------------------------------------
-## todo: use some better way to enable partial debug modes
+# ----------------------------------------------------------------------
+# todo: use some better way to enable partial debug modes
 debug = True if os.environ.get('DQ_DEBUG') else False
 lexer = lex.lex(debug=debug)

@@ -1,19 +1,19 @@
 from __future__ import absolute_import
 
-## todo: refactor this thing, as we want tee implementations
-##       to match the one in itertools.tee
-## todo: create a true parallel tee using multiprocessing
-##       -> although it might be hard to do make compatible
-##          with itertools.tee...
-## todo: then figure out how to test it..
+# todo: refactor this thing, as we want tee implementations
+#       to match the one in itertools.tee
+# todo: create a true parallel tee using multiprocessing
+#       -> although it might be hard to do make compatible
+#          with itertools.tee...
+# todo: then figure out how to test it..
 
 from greenlet import greenlet
 
 
-##------------------------------------------------------------
-## Purpose of a tee is dispatching output from a generator
-## to a pool of consumers accepting a stream as input.
-##------------------------------------------------------------
+# ------------------------------------------------------------
+# Purpose of a tee is dispatching output from a generator
+# to a pool of consumers accepting a stream as input.
+# ------------------------------------------------------------
 
 
 class GreenGenerator(object):

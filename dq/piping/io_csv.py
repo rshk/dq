@@ -3,16 +3,16 @@ import collections
 
 from .base import FileSource, FileSink
 
-## todo: figure out a nice way to load field names from file
-##       while allowing user to pass them by hand too..
+# todo: figure out a nice way to load field names from file
+#       while allowing user to pass them by hand too..
 
 
 class InCSV(FileSource):
     def __init__(self, csvfile, fieldnames=None, header=None, **kw):
         super(InCSV, self).__init__(csvfile)
 
-        ## If ``header=True``, the first line will be used as
-        ## field headers.
+        # If ``header=True``, the first line will be used as
+        # field headers.
 
         if header and (fieldnames is not None):
             raise ValueError("You can only specify one of fieldnames, header")
@@ -28,7 +28,7 @@ class InCSV(FileSource):
         fieldnames = None
 
         if self._csv_header:
-            ## This means: take first line as header
+            # This means: take first line as header
             fieldnames = tuple(next(reader))
         elif self._csv_fieldnames:
             fieldnames = tuple(self._csv_fieldnames)
@@ -38,7 +38,7 @@ class InCSV(FileSource):
         else:
             row_factory = lambda *a: tuple(a)
 
-        ## This method needs to be a generator..
+        # This method needs to be a generator..
         for line in reader:
             yield row_factory(*line)
 
@@ -52,9 +52,9 @@ class OutCSV(FileSink):
         self._conf = kw
 
     def __call__(self, stream):
-        ## todo: how to handle autoheader? (to handle properly
-        ##       we lose asynchronousness..)
-        ## todo: use correct order if a header is specified..
+        # todo: how to handle autoheader? (to handle properly
+        #       we lose asynchronousness..)
+        # todo: use correct order if a header is specified..
 
         writer = csv.writer(self.fp, **self._conf)
         for row in stream:

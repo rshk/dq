@@ -9,7 +9,7 @@ import dq.piping.io_csv
 import dq.piping.io_json
 
 
-## todo: use entry points instead!
+# todo: use entry points instead!
 DEVICES_REGISTER = {
     'Filter': dq.piping.filter.Filter,
     'Transform': dq.piping.filter.Transform,
@@ -36,17 +36,17 @@ def execute(obj, args=()):
     """
 
     if isinstance(obj, Device):
-        ## To execute a device, we just pass it all
-        ## the arguments.
-        ## In case we got streams, we just unwrap them.
+        # To execute a device, we just pass it all
+        # the arguments.
+        # In case we got streams, we just unwrap them.
 
         _callable = get_device_instance(
             name=obj.name, args=obj.args, keywords=obj.keywords)
         return _callable(*args)
 
     elif isinstance(obj, PipelineBlock):
-        ## We need to call all the contained pipelines,
-        ## passing arguments.
+        # We need to call all the contained pipelines,
+        # passing arguments.
 
         _args_matrix = []
         _count = len(obj)
@@ -54,17 +54,17 @@ def execute(obj, args=()):
 
         for arg in args:
             if inspect.isgenerator(arg):
-                ## We need a generator for each pipeline
+                # We need a generator for each pipeline
                 _args_matrix.append(itertools.tee(arg, _count))
 
             else:
-                ## We just need to pass multiple copies
+                # We just need to pass multiple copies
                 _args_matrix.append((arg,) * _count)
 
-        ## We zip the matrix to have each row contain
-        ## all the argument calls.
-        ## We zip that together with obj to get a list
-        ## of (pipe, args) tuples..
+        # We zip the matrix to have each row contain
+        # all the argument calls.
+        # We zip that together with obj to get a list
+        # of (pipe, args) tuples..
         for pipe, args in zip(obj, zip(*_args_matrix)):
             assert isinstance(pipe, Pipeline)
             _results.append(execute(pipe, args))
@@ -72,8 +72,8 @@ def execute(obj, args=()):
         return tuple(_results)
 
     elif isinstance(obj, Pipeline):
-        ## We need to keep executing items in the pipeline
-        ## passing the return value of each one to the next.
+        # We need to keep executing items in the pipeline
+        # passing the return value of each one to the next.
 
         if args is None:
             args = ()
@@ -85,14 +85,14 @@ def execute(obj, args=()):
             result = execute(item, args)
 
             if isinstance(item, PipelineBlock):
-                ## Args should be passed as-is to the next one
+                # Args should be passed as-is to the next one
                 assert isinstance(result, tuple)
                 wasblock = True
                 args = result
 
             else:
-                ## We have only one object to pass to next node
-                ## but is it a stream?
+                # We have only one object to pass to next node
+                # but is it a stream?
                 assert isinstance(item, Device)
                 wasblock = False
                 args = (result,)
